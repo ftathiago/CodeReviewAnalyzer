@@ -4,36 +4,42 @@ using CodeReviewAnalyzer.Database.Contexts;
 
 namespace CodeReviewAnalyzer.Database.Repositories;
 
-public class PullRequestsRepository : IPullRequests
+public class PullRequestsRepository(IDatabaseFacade databaseFacade) : IPullRequests
 {
     private const string InsertSql =
         """
             INSERT INTO "PULL_REQUEST" (
                   "EXTERNAL_ID"
                 , "TITLE"
+                , "CREATED_BY_ID"
                 , "REPOSITORY_NAME"
+                , "URL"
                 , "CREATION_DATE"
                 , "CLOSED_DATE"
-                , "URL"
-                , "CREATED_BY_ID"
-                , "WAITING_TIME_MINUTES"
                 , "FIRST_COMMENT_DATE"
-                , "LAST_COMMENT_RESOLVED_DATE"
+                , "LAST_APPROVAL_DATE"
+                , "REVISION_WAITING_TIME_MINUTES"
+                , "MERGE_WAITING_TIME_MINUTES"
+                , "FIRST_COMMENT_WAITING_TIME_MINUTES"
                 , "MERGE_MODE"
                 , "FILE_COUNT"
+                , "THREAD_COUNT"
             ) VALUES(
                   @ExternalId
                 , @Title
+                , (select u."ID" from "USERS" u where u."EXTERNAL_IDENTIFIER" = @UserKey)
                 , @RepositoryName
+                , @Url
                 , @CreationDate
                 , @ClosedDate
-                , @Url
-                , (select u."ID" from "USERS" u where u."EXTERNAL_IDENTIFIER" = @UserKey)
-                , @WaitingTimeMinutes
                 , @FirstCommentDate
-                , @LastCommentResolvedDate
+                , @LastApprovalDate
+                , @RevisionWaitingTimeMinutes
+                , @MergeWaitingTimeMinutes
+                , @FirstCommentWaitingTimeMinutes
                 , @MergeMode
-                , @FileCount) returning "ID";
+                , @FileCount
+                , @ThreadCount) returning "ID";
 
         """;
 
@@ -42,12 +48,16 @@ public class PullRequestsRepository : IPullRequests
             INSERT INTO "PULL_REQUEST_COMMENTS" (
                   "PULL_REQUEST_ID"
                 , "USER_ID"
+                , "COMMENT_INDEX"
+                , "THREAD_ID"
                 , "COMMENT_DATE"
                 , "COMMENT"
                 , "RESOLVED_DATE"
             ) VALUES (
                   @PullRequestId
                 , (select u."ID" from "USERS" u where u."EXTERNAL_IDENTIFIER" = @UserId)
+                , @CommentIndex
+                , @ThreadId
                 , @CommentDate
                 , @Comment
                 , @ResolvedDate
@@ -55,41 +65,39 @@ public class PullRequestsRepository : IPullRequests
 
         """;
 
-    private readonly IDatabaseFacade _databaseFacade;
-
-    public PullRequestsRepository(IDatabaseFacade databaseFacade)
-    {
-        _databaseFacade = databaseFacade;
-    }
-
     public async Task Add(PullRequest pullRequest)
     {
-        var id = await _databaseFacade.ExecuteScalarAsync<int>(InsertSql, new
+        var id = await databaseFacade.ExecuteScalarAsync<int>(InsertSql, new
         {
             ExternalId = pullRequest.Id.ToString(),
             pullRequest.Title,
             pullRequest.RepositoryName,
-            pullRequest.CreationDate,
-            pullRequest.ClosedDate,
+            CreationDate = pullRequest.CreationDate.ToLocalTime(),
+            ClosedDate = pullRequest.ClosedDate.ToLocalTime(),
             pullRequest.Url,
             UserKey = pullRequest.CreatedBy.Id,
-            WaitingTimeMinutes = pullRequest.WaitingTime.TotalMinutes,
-            pullRequest.FirstCommentDate,
-            pullRequest.LastCommentResolvedDate,
+            RevisionWaitingTimeMinutes = pullRequest.RevisionWaitingTime.TotalMinutes,
+            MergeWaitingTimeMinutes = pullRequest.MergeWaitingTime.TotalMinutes,
+            FirstCommentWaitingTimeMinutes = pullRequest.FirstCommentWaitingTime.TotalMinutes,
+            FirstCommentDate = pullRequest.FirstCommentDate.ToLocalTime(),
+            LastApprovalDate = pullRequest.LastApprovalDate.ToLocalTime(),
             pullRequest.MergeMode,
             pullRequest.FileCount,
+            pullRequest.ThreadCount,
         });
         foreach (var comment in pullRequest.Comments)
         {
-            await _databaseFacade.ExecuteAsync(
+            await databaseFacade.ExecuteAsync(
             InsertComments,
             new
             {
                 PullRequestId = id,
-                UserId = pullRequest.CreatedBy.Id,
-                comment.CommentDate,
+                UserId = comment.CommentedBy.Id,
+                comment.CommentIndex,
+                comment.ThreadId,
+                CommentDate = comment.CommentDate.ToLocalTime(),
                 comment.Comment,
-                comment.ResolvedDate,
+                ResolvedDate = comment.ResolvedDate.ToLocalTime(),
             });
         }
     }

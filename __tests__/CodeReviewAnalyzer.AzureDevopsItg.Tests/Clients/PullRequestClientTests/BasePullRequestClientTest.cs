@@ -27,6 +27,10 @@ public class BasePullRequestClientTest
 
         var project = new AutoFaker<TeamProject>().Generate();
 
+        ConnectionFactory
+            .CreateConnection(Arg.Any<Configuration>())
+            .Returns(Connection);
+
         Connection
             .GetClientAsync<ProjectHttpClient>()
             .Returns(Task.FromResult(ProjectClient));

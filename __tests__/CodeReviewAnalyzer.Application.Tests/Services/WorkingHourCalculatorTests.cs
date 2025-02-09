@@ -77,6 +77,25 @@ public class WorkingHourCalculatorTests
     }
 
     [Fact]
+    public void Should_CalculateOverTime_When_ClosedDuringLunchTime()
+    {
+        // Given
+        var friday = new DateTime(year: 2025, month: 1, day: 31, hour: 11, minute: 59, second: 0, DateTimeKind.Unspecified);
+        var nextTuesday = new DateTime(year: 2025, month: 1, day: 31, hour: 12, minute: 5, second: 0, DateTimeKind.Unspecified);
+        var holidays = Array.Empty<DateOnly>();
+        var calculator = new WorkingHourCalculator(
+            _morningWorkingTime,
+            _afternoonWorkingTime,
+            holidays);
+
+        // When
+        var waitingTime = calculator.Calculate(friday, nextTuesday);
+
+        // Then
+        waitingTime.ShouldBe(TimeSpan.FromMinutes(6));
+    }
+
+    [Fact]
     public void Should_CalculateOverTime_When_ClosedAfterExpedient()
     {
         // Given

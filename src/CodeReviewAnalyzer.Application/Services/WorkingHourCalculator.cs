@@ -42,19 +42,28 @@ public class WorkingHourCalculator(
     private TimeSpan CalculateOverTime(DateTime createdAt, DateTime closedAt)
     {
         var totalTime = TimeSpan.Zero;
+        // Created before morning begins
         if (createdAt.TimeOfDay < _morning.Begin)
         {
             totalTime += _morning.Begin - createdAt.TimeOfDay;
         }
 
-        if (closedAt.TimeOfDay > _afternoon.End)
-        {
-            totalTime += closedAt.TimeOfDay - _afternoon.End;
-        }
-
+        // Closed before morning begins
         if (closedAt.TimeOfDay < _morning.Begin)
         {
             totalTime += TimeSpan.FromMinutes(30);
+        }
+
+        // Closed during the lunch time
+        if (closedAt.TimeOfDay > _morning.End && closedAt.TimeOfDay < _afternoon.Begin)
+        {
+            totalTime += closedAt.TimeOfDay - _morning.End;
+        }
+
+        // Closed after afternoon ends
+        if (closedAt.TimeOfDay > _afternoon.End)
+        {
+            totalTime += closedAt.TimeOfDay - _afternoon.End;
         }
 
         return totalTime;

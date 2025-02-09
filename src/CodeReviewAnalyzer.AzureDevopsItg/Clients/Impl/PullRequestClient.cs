@@ -46,6 +46,14 @@ internal sealed class PullRequestClient(IConnectionFactory connectionFactory) : 
 
             foreach (var pr in prs)
             {
+                var prFromMain =
+                    pr.SourceRefName.Equals("refs/heads/main", StringComparison.InvariantCulture) ||
+                    pr.SourceRefName.Equals("refs/heads/master", StringComparison.InvariantCulture);
+                if (prFromMain)
+                {
+                    continue;
+                }
+
                 var count = 0;
                 var threads = new List<GitPullRequestCommentThread>();
 

@@ -12,6 +12,11 @@ public class M202501181805CreateConfigurationTable : Migration
 
     public override void Up()
     {
+        this.Execute.Sql(
+            """
+                CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+            
+            """);
         Create.Table("CONFIGURATION")
             .WithColumn("ID")
                 .AsInt32()

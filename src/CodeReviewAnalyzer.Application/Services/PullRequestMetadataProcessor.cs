@@ -7,22 +7,18 @@ namespace CodeReviewAnalyzer.Application.Services;
 
 public class PullRequestMetadataProcessor(
     IPullRequestsClient pullRequestsClient,
-    IConfigurations configurations,
+    IConfigurations configurationRepository,
     IDayOff dayOff,
     IUsers users,
-    IPullRequests pullRequests)
+    IPullRequests pullRequestRepository)
 {
     private readonly PeriodTimeSpan _morningWorkingTime = new(TimeSpan.FromHours(8), TimeSpan.FromHours(12));
     private readonly PeriodTimeSpan _afternoonWorkingTime = new(TimeSpan.FromHours(13), TimeSpan.FromHours(17));
-    private readonly IPullRequestsClient _pullRequestsClient = pullRequestsClient;
-    private readonly IConfigurations _configurations = configurations;
-    private readonly IDayOff _dayOff = dayOff;
-    private readonly IPullRequests _pullRequests = pullRequests;
 
     public async Task ExecuteAsync()
     {
-        var configurations = await _configurations.GetAllAsync();
-        var holidays = await _dayOff.GetAllAsync(
+        var configurations = await configurationRepository.GetAllAsync();
+        var holidays = await dayOff.GetAllAsync(
             from: new DateOnly(2024, 01, 01),
             to: DateOnly.FromDateTime(DateTime.Now));
         var calculator = new WorkingHourCalculator(
@@ -40,11 +36,10 @@ public class PullRequestMetadataProcessor(
         Configuration configuration,
         WorkingHourCalculator calculator)
     {
-
-        var pullRequests = _pullRequestsClient.GetPullRequestsAsync(
+        var pullRequests = pullRequestsClient.GetPullRequestsAsync(
             configuration,
             calculator,
-            minTime: new DateTime(2024, 01, 01),
+            minTime: new DateTime(2024, 01, 01, 0, 0, 0, DateTimeKind.Unspecified),
             maxTime: DateTime.Now);
 
         await foreach (var pullRequest in pullRequests)
@@ -57,12 +52,12 @@ public class PullRequestMetadataProcessor(
     private async Task ProcessUserAsync(PullRequest pullRequest)
     {
         await users.Upsert(pullRequest.CreatedBy);
-        foreach (var reviewer in pullRequest.Reviewers)
+        foreach (var reviewer in pullRequest.Reviewers.Union(pullRequest.Comments.Select(c => c.CommentedBy)))
         {
             await users.Upsert(reviewer);
         }
     }
 
     private async Task ProcessPullRequestAsync(PullRequest pullRequest) =>
-        await _pullRequests.Add(pullRequest);
+        await pullRequestRepository.Add(pullRequest);
 }

@@ -20,15 +20,40 @@ public class PullRequest(WorkingHourCalculator workingHourCalculator)
 
     public TimeSpan PlainWaitingTime => ClosedDate.Subtract(CreationDate);
 
-    public TimeSpan WaitingTime => _workingHourCalculator.Calculate(CreationDate, ClosedDate);
+    public TimeSpan RevisionWaitingTime => Comments.Any()
+        ? _workingHourCalculator.Calculate(
+            createdAt: Comments
+                .Select(c => c.CommentDate)
+                .DefaultIfEmpty(DateTime.MinValue)
+                .Min(),
+            closedAt: Comments
+                .Select(c => c.ResolvedDate)
+                .DefaultIfEmpty(DateTime.MinValue)
+                .Max())
+        : TimeSpan.Zero;
+
+    public TimeSpan MergeWaitingTime => _workingHourCalculator.Calculate(
+        createdAt: CreationDate,
+        closedAt: ClosedDate);
+
+    public TimeSpan FirstCommentWaitingTime => Comments.Any()
+        ? _workingHourCalculator.Calculate(
+            createdAt: CreationDate,
+            closedAt: Comments
+                .Select(c => c.CommentDate)
+                .DefaultIfEmpty(DateTime.MinValue)
+                .Min())
+        : TimeSpan.Zero;
 
     public required User CreatedBy { get; init; }
 
     public required int FileCount { get; init; }
 
+    public required int ThreadCount { get; init; } = 0;
+
     public required DateTime FirstCommentDate { get; init; }
 
-    public required DateTime LastCommentResolvedDate { get; init; }
+    public required DateTime LastApprovalDate { get; init; }
 
     public required string MergeMode { get; init; }
 
