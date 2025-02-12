@@ -15,12 +15,12 @@ public class PullRequestMetadataProcessor(
     private readonly PeriodTimeSpan _morningWorkingTime = new(TimeSpan.FromHours(8), TimeSpan.FromHours(12));
     private readonly PeriodTimeSpan _afternoonWorkingTime = new(TimeSpan.FromHours(13), TimeSpan.FromHours(17));
 
-    public async Task ExecuteAsync()
+    public async Task ExecuteAsync(DateOnly begin, DateOnly end)
     {
         var configurations = await configurationRepository.GetAllAsync();
         var holidays = await dayOff.GetAllAsync(
-            from: new DateOnly(2024, 01, 01),
-            to: DateOnly.FromDateTime(DateTime.Now));
+            from: begin,
+            to: end);
         var calculator = new WorkingHourCalculator(
             _morningWorkingTime,
             _afternoonWorkingTime,

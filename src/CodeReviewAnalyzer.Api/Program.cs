@@ -1,5 +1,4 @@
 using CodeReviewAnalyzer.Api.Extensions;
-using CodeReviewAnalyzer.Application.Extensions;
 using CodeReviewAnalyzer.Application.Services;
 using CodeReviewAnalyzer.Database.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -10,8 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
 builder.Services.ConfigureApplication();
-builder.Services.AddApplication();
 
 var app = builder.Build();
 
@@ -22,12 +21,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapGet("/pull-requests", async ([FromServices] PullRequestMetadataProcessor processor) =>
+app.MapGet("/pull-requests", async (
+    [FromServices] PullRequestMetadataProcessor processor,
+    [FromQuery] DateOnly begin,
+    [FromQuery] DateOnly end) =>
 {
-    await processor.ExecuteAsync();
+    await processor.ExecuteAsync(begin, end);
 })
 .WithName("GetWeatherForecast")
 .WithOpenApi();
+
+app
+    .UseRouting()
+    .UseEndpoints(endpoints => endpoints.MapControllers());
 
 CodeReviewAnalyzerDatabaseExtensions.ExecuteMigration(app.Services);
 

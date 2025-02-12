@@ -1,3 +1,4 @@
+using CodeReviewAnalyzer.Application.Extensions;
 using CodeReviewAnalyzer.AzureDevopsItg.Extensions;
 using CodeReviewAnalyzer.Database.Extensions;
 
@@ -9,6 +10,7 @@ public static class CodeReviewAnalyzerApiExtensions
     {
         return services
             .AddDatabase()
-            .AddAzureDevopsItg();
+            .AddAzureDevopsItg()
+            .AddApplication();
     }
 }
