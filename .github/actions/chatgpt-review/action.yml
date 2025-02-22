@@ -2,5 +2,4 @@ name: ChatGPT Code Review
 description: "Run ChatGPT to review pull request changes and post feedback as a comment."
 runs:
   using: "node12"
-  main: "index.js"
-  
+  main: "indexx.js"
