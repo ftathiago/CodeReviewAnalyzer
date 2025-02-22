@@ -35,13 +35,14 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" 
             )
 
-          echo $models
+          echo "This is the models $models"
 
           response=$(curl https://api.openai.com/v1/chat/completions \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
             -d '{
               "model": "o3-mini",
+              "reasoning_effort": "high"
               "messages": [
                 {"role": "system", "content": "${{ vars.CODE_REVIEW_PROMPT }}"},
                 {"role": "user", "content": "$escaped_code"}
