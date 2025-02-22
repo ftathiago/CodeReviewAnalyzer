@@ -27,7 +27,7 @@ jobs:
         run: |
           # get the code changes
           changed_code=$(cat ${{steps.git-diff.outputs.raw-diff-path}})
-          echo "PR Changes $changed_code"
+          # echo "PR Changes $changed_code"
 
           escaped_code=$(echo $"changed_files" | jq -s -R -r @json
 
