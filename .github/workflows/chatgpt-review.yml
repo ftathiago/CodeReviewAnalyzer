@@ -31,11 +31,17 @@ jobs:
 
           escaped_code=$(echo $"changed_files" | jq -s -R -r @json)
 
+          models=$(curl https://api.openai.com/v1/models \
+            -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" 
+            )
+
+          echo $models
+
           response=$(curl https://api.openai.com/v1/chat/completions \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
             -d '{
-              "model": "o3-mini-high",
+              "model": "o3-mini",
               "messages": [
                 {"role": "system", "content": "${{ vars.CODE_REVIEW_PROMPT }}"},
                 {"role": "user", "content": "$escaped_code"}
