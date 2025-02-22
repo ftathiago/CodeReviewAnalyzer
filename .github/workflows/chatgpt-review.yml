@@ -36,14 +36,13 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
             -d '{
               "model": "gpt-4o",
-              "reasoning_effort": "high"
               "messages": [
                 {"role": "system", "content": "${{ vars.CODE_REVIEW_PROMPT }}"},
-                {"role": "user", "content": "$escaped_code"}
+                {"role": "user", "content": "${escaped_code}" }
               ],
               "temperature": 0.7
             }')
-            
+
           echo "This is the response $response"
 
 
