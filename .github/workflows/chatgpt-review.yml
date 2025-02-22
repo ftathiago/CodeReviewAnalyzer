@@ -1,0 +1,32 @@
+name: ChatGPT Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+        with:
+          fetch-depth: 0
+      - uses: GrantBirki/git-diff-action@v2.4.0
+        id: git-diff
+        with:
+          raw_diff_file_output: diff.txt
+          # file_output_only: "true"
+
+      - name: Perform Code Review With gpt-4
+        id: code_review_suggestions
+        run: |
+         # get the code changes
+         changed_code=$(cat ${{steps.git-diff.outputs.raw-diff-path}})
+         echo "PR Changes $changed_code"
+
+
