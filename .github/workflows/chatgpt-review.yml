@@ -29,7 +29,7 @@ jobs:
           changed_code=$(cat ${{steps.git-diff.outputs.raw-diff-path}})
           # echo "PR Changes $changed_code"
 
-          escaped_code=$(echo $"changed_files" | jq -s -R -r @json
+          escaped_code=$(echo $"changed_files" | jq -s -R -r @json)
 
           response=$(curl https://api.openai.com/v1/chat/completions \
             -H "Content-Type: application/json" \
