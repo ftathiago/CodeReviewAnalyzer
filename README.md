@@ -13,3 +13,5 @@ Com isso, ao rodar o arquivo `./start-container.sh`, os projetos serão compilad
 É possível que o projeto backend inicie antes do banco (ainda não fiz ele aguardar). Nesse caso, apenas mande rodar novamente o backend e tudo estará bem.
 
 O container init-db inicializa o banco de dados com algumas informações. Estou usando apenas para poupar trabalhar de ficar reconfigurando o banco.
+
+asdf
