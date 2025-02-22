@@ -16,17 +16,16 @@ jobs:
         uses: actions/checkout@v4.1.1
         with:
           fetch-depth: 0
-      - uses: GrantBirki/git-diff-action@v2.4.0
-        id: git-diff
+
+      - uses: sshnaidm/gpt-code-review-action@v2.0
         with:
-          raw_diff_file_output: diff.txt
-          # file_output_only: "true"
-
-      - name: Perform Code Review With gpt-4
-        id: code_review_suggestions
-        run: |
-         # get the code changes
-         changed_code=$(cat ${{steps.git-diff.outputs.raw-diff-path}})
-         echo "PR Changes $changed_code"
-
-
+          openai-key: ${{ secrets.OPENAI_API_KEY }}
+          model: 'o3-mini-high'
+          max-length: 8000
+          prompt: 'Suggest code syntax, performance, clarity improvements for this code.'
+          post-if-error: false
+      # - name: Run ChatGPT Code Review
+      #   uses: ./.github/actions/chatgpt-review
+      #   env:
+      #     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
