@@ -16,16 +16,32 @@ jobs:
         uses: actions/checkout@v4.1.1
         with:
           fetch-depth: 0
-
-      - uses: sshnaidm/gpt-code-review-action@v2.0
+      - uses: GrantBirki/git-diff-action@v2.4.0
+        id: git-diff
         with:
-          openai-key: ${{ secrets.OPENAI_API_KEY }}
-          model: 'o3-mini-high'
-          max-length: 8000
-          prompt: 'Suggest code syntax, performance, clarity improvements for this code.'
-          post-if-error: false
-      # - name: Run ChatGPT Code Review
-      #   uses: ./.github/actions/chatgpt-review
-      #   env:
-      #     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          raw_diff_file_output: diff.txt
+          file_output_only: "true"
+
+      - name: Perform Code Review With gpt-4
+        id: code_review_suggestions
+        run: |
+          # get the code changes
+          changed_code=$(cat ${{steps.git-diff.outputs.raw-diff-path}})
+          echo "PR Changes $changed_code"
+
+          escaped_code=$(echo $"changed_files" | jq -s -R -r @json
+
+          response=$(curl https://api.openai.com/v1/chat/completions \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.OPEN_AI_KEY }}" \
+            -d '{
+              "model": "gpt-03-mini-high",
+              "messages": [
+                {"role": "system", "content": "${{ vars.CODE_REVIEW_PROMPT }}"},
+                {"role": "user", "content": "$escaped_code"}
+              ],
+              "temperature": 0.7
+            }')
+          echo "This is the response $response"
+
+
