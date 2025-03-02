@@ -2,8 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { PageFilter } from './models/page-filter';
-import { TeamsPaginated } from './models/teams-paginated';
+import { PageFilter } from '../report/models/page-filter';
+import { TeamsPaginated } from '../report/models/teams-paginated';
 
 @Injectable({
     providedIn: 'root'
